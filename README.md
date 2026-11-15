@@ -4,6 +4,8 @@ Neural Networks course, 2025–2026.
 
 This project implements two single-neuron classifiers **from scratch (NumPy only)** — the **Perceptron** and **Adaline** — and applies them to the Birds dataset (3 species: A, B, C; 50 samples each). The user picks **two features** and **two classes**; the model is trained on 30 random samples per class and tested on the remaining 20 per class. A web GUI lets you train, visualise, save/load models and classify a single sample.
 
+Live demo: https://nana66.pythonanywhere.com
+
 ## Workflow
 
 1. **`Lab4_Task1_Training.ipynb`** runs all feature/class combinations for both algorithms, plots the decision lines, computes confusion matrices and accuracy, and **saves the trained models** to `models/` (JSON files).
