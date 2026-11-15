@@ -10,6 +10,17 @@ Live demo: https://nana66.pythonanywhere.com
 
 <img width="1220" height="842" alt="Screenshot 2026-11-15 161943" src="https://github.com/user-attachments/assets/62d9b56b-9b59-49ea-9918-ccc3493d854e" />
 
+<img width="1222" height="838" alt="Screenshot 2026-11-15 161923" src="https://github.com/user-attachments/assets/bf588a15-77fa-436b-811e-547756822636" />
+
+<img width="1221" height="842" alt="Screenshot 2026-11-15 161208" src="https://github.com/user-attachments/assets/22dffeb2-3d56-49cb-9239-cfb1cd69cb6f" />
+
+<img width="1220" height="842" alt="Screenshot 2026-11-15 161909" src="https://github.com/user-attachments/assets/67aad989-7c96-4ede-a042-d2e0bb10c2b8" />
+
+<img width="1221" height="842" alt="Screenshot 2026-11-15 161127" src="https://github.com/user-attachments/assets/0eb416cc-c72b-4115-8ff5-fa6e687e7963" />
+
+
+
+
 
 
 ## Workflow
