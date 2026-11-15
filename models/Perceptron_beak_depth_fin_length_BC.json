@@ -1,0 +1,41 @@
+{
+  "algorithm": "Perceptron",
+  "features": [
+    "beak_depth",
+    "fin_length"
+  ],
+  "classes": [
+    "B",
+    "C"
+  ],
+  "w": [
+    0.03801470290806477,
+    -0.02054949374218782
+  ],
+  "b": -0.011168077456073254,
+  "mean": [
+    16.615,
+    205.05
+  ],
+  "std": [
+    2.218770305071407,
+    11.957459317653285
+  ],
+  "eta": 0.01,
+  "epochs": 200,
+  "epochs_run": 1,
+  "use_bias": true,
+  "mse_threshold": 0.0,
+  "cm": [
+    [
+      20,
+      0
+    ],
+    [
+      0,
+      20
+    ]
+  ],
+  "accuracy": 1.0,
+  "train_accuracy": 1.0
+}
