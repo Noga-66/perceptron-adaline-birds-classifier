@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birds Classifier – Perceptron / Adaline</title>
+<style>
+  :root { --bg:#f4f6fa; --card:#fff; --ink:#1d2433; --muted:#667085; --line:#dfe3ec;
+          --accent:#e07a7a; --accent-dark:#c75f5f; --ok:#2e9d6a; --blue:#3b6fd4; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--accent); color:#fff; padding:14px 24px; }
+  header h1 { margin:0; font-size:20px; } header p { margin:2px 0 0; font-size:13px; opacity:.9; }
+  main { display:grid; grid-template-columns: 330px 1fr; gap:18px; padding:18px; max-width:1300px; margin:auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  .card h2 { margin:0 0 12px; font-size:15px; color:var(--accent-dark); }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  select, input[type=number], input[type=text] { width:100%; padding:8px 10px; border:1px solid var(--line);
+          border-radius:6px; font-size:14px; background:#fff; }
+  .check, .radio { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); margin:12px 0 4px; }
+  .radio-row { display:flex; gap:18px; margin-top:6px; }
+  button { cursor:pointer; border:0; border-radius:6px; padding:10px 14px; font-size:14px; font-weight:600; color:#fff; background:var(--accent); width:100%; margin-top:14px; }
+  button:hover { background:var(--accent-dark); }
+  button.secondary { background:var(--blue); } button.green { background:var(--ok); }
+  button:disabled { background:#c9cfdb; cursor:not-allowed; }
+  .row { display:flex; gap:10px; } .row > * { flex:1; }
+  #plot { width:100%; border-radius:6px; display:none; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0; }
+  .stat { background:var(--bg); border-radius:8px; padding:10px 14px; min-width:140px; }
+  .stat b { display:block; font-size:20px; } .stat span { font-size:12px; color:var(--muted); }
+  table.cm { border-collapse:collapse; margin-top:6px; }
+  table.cm th, table.cm td { border:1px solid var(--line); padding:8px 16px; text-align:center; font-size:14px; }
+  table.cm th { background:var(--bg); } table.cm td.diag { background:#e5f5ec; font-weight:700; }
+  .msg { margin-top:10px; font-size:14px; } .err { color:#c0392b; } .good { color:var(--ok); font-weight:700; }
+  .big { font-size:20px; font-weight:700; margin-top:10px; }
+  .muted { color:var(--muted); font-size:13px; }
+  code { background:var(--bg); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Birds Classifier – Single Layer Perceptron &amp; Adaline</h1>
+  <p>Neural Networks · Lab 4 · Task 1</p>
+</header>
+
+<main>
+  <!-- ============ LEFT: controls ============ -->
+  <section>
+    <div class="card">
+      <h2>1. Training parameters</h2>
+      <label>Feature 1</label>
+      <select id="f1">{% for f in features %}<option value="{{ f }}" {{ 'selected' if f=='beak_length' }}>{{ f }}</option>{% endfor %}</select>
+      <label>Feature 2</label>
+      <select id="f2">{% for f in features %}<option value="{{ f }}" {{ 'selected' if f=='fin_length' }}>{{ f }}</option>{% endfor %}</select>
+      <label>Classes</label>
+      <select id="classes">{% for c in class_pairs %}<option {{ 'selected' if c=='A & C' }}>{{ c }}</option>{% endfor %}</select>
+      <div class="row">
+        <div><label>Learning rate (eta)</label><input type="number" id="eta" value="0.01" step="any" min="0"></div>
+        <div><label>Epochs (m)</label><input type="number" id="epochs" value="100" step="1" min="1"></div>
+      </div>
+      <label>MSE threshold</label>
+      <input type="number" id="mse" value="0.01" step="any" min="0">
+      <label class="check"><input type="checkbox" id="bias" checked> Add bias</label>
+      <label>Algorithm</label>
+      <div class="radio-row">
+        {% for a in algorithms %}
+        <label class="radio"><input type="radio" name="algo" value="{{ a }}" {{ 'checked' if loop.first }}> {{ a }}</label>
+        {% endfor %}
+      </div>
+      <button id="trainBtn">Train &amp; Test</button>
+      <div id="trainMsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Save / Load model</h2>
+      <button id="saveBtn" class="green" disabled>Save current model</button>
+      <label>Saved models (<code>models/</code> folder)</label>
+      <select id="modelList">
+        {% for m in models %}<option>{{ m }}</option>{% endfor %}
+      </select>
+      <button id="loadBtn" class="secondary">Load selected model</button>
+      <div id="modelMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: results ============ -->
+  <section>
+    <div class="card">
+      <h2>3. Results</h2>
+      <p id="placeholder" class="muted">Train a model or load a saved one to see the decision line, the confusion matrix and the accuracy.</p>
+      <img id="plot" alt="decision boundary plot">
+      <div id="resultBlock" style="display:none">
+        <div class="stats">
+          <div class="stat"><b id="accTest">–</b><span>Overall accuracy (test, 20/class)</span></div>
+          <div class="stat"><b id="accTrain">–</b><span>Train accuracy (30/class)</span></div>
+          <div class="stat"><b id="epochsRun">–</b><span>Epochs run</span></div>
+        </div>
+        <div id="meta" class="muted"></div>
+        <h2 style="margin-top:14px">Confusion matrix (rows = actual, columns = predicted)</h2>
+        <table class="cm" id="cmTable"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Classify a single sample</h2>
+      <div id="sampleInputs" class="row"><span class="muted">Train or load a model first.</span></div>
+      <button id="classifyBtn" class="secondary" disabled style="max-width:240px">Classify sample</button>
+      <div id="classifyOut" class="big"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let currentFeatures = [];
+let meansForDefaults = {beak_length:44.87, fin_length:198.92, body_mass:4158.8, beak_depth:17.32, gender:0};
+
+async function post(url, body) {
+  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
+function pct(x) { return (x*100).toFixed(2) + "%"; }
+
+function showResult(d, isLoaded) {
+  $("placeholder").style.display = "none";
+  $("plot").src = "data:image/png;base64," + d.plot; $("plot").style.display = "block";
+  $("resultBlock").style.display = "block";
+  $("accTest").textContent = pct(d.accuracy);
+  $("accTrain").textContent = pct(d.train_accuracy);
+  $("epochsRun").textContent = d.epochs_run;
+  $("meta").innerHTML = `<b>${d.algorithm}</b> · features: <code>${d.features.join("</code>, <code>")}</code> · classes: ${d.classes.join(" vs ")} · eta=${d.eta} · max epochs=${d.epochs} · bias=${d.use_bias ? "yes" : "no"}`
+      + `<br>weights = [${d.weights.map(w => w.toFixed(4)).join(", ")}], b = ${d.bias.toFixed(4)} (on standardized inputs)`
+      + (isLoaded ? "<br><i>Loaded from file – metrics are those saved at training time.</i>" : "");
+  const [c0, c1] = d.classes, cm = d.cm;
+  $("cmTable").innerHTML =
+    `<tr><th></th><th>pred ${c0}</th><th>pred ${c1}</th></tr>` +
+    `<tr><th>actual ${c0}</th><td class="diag">${cm[0][0]}</td><td>${cm[0][1]}</td></tr>` +
+    `<tr><th>actual ${c1}</th><td>${cm[1][0]}</td><td class="diag">${cm[1][1]}</td></tr>`;
+  buildSampleInputs(d.features);
+  $("saveBtn").disabled = false;
+  $("classifyOut").textContent = "";
+}
+
+function buildSampleInputs(features) {
+  currentFeatures = features;
+  $("sampleInputs").innerHTML = features.map((f, i) => f === "gender"
+    ? `<div><label>gender</label><select id="s${i}"><option value="0">female (0)</option><option value="1">male (1)</option></select></div>`
+    : `<div><label>${f}</label><input type="number" step="any" id="s${i}" value="${meansForDefaults[f]}"></div>`).join("");
+  $("classifyBtn").disabled = false;
+}
+
+$("trainBtn").onclick = async () => {
+  $("trainMsg").innerHTML = ""; $("trainMsg").className = "msg";
+  try {
+    $("trainBtn").disabled = true; $("trainBtn").textContent = "Training…";
+    const d = await post("/api/train", {
+      features: [$("f1").value, $("f2").value], classes: $("classes").value,
+      algorithm: document.querySelector("input[name=algo]:checked").value,
+      eta: $("eta").value, epochs: $("epochs").value, mse_threshold: $("mse").value, use_bias: $("bias").checked
+    });
+    showResult(d, false);
+    $("trainMsg").textContent = "Training finished."; $("trainMsg").classList.add("good");
+  } catch (e) { $("trainMsg").textContent = "⚠ " + e.message; $("trainMsg").classList.add("err"); }
+  finally { $("trainBtn").disabled = false; $("trainBtn").textContent = "Train & Test"; }
+};
+
+$("saveBtn").onclick = async () => {
+  try {
+    const d = await post("/api/save", {});
+    $("modelList").innerHTML = d.models.map(m => `<option ${m===d.saved_as?"selected":""}>${m}</option>`).join("");
+    $("modelMsg").textContent = "Saved as models/" + d.saved_as; $("modelMsg").className = "msg good";
+  } catch (e) { $("modelMsg").textContent = "⚠ " + e.message; $("modelMsg").className = "msg err"; }
+};
+
+$("loadBtn").onclick = async () => {
+  try {
+    const name = $("modelList").value;
+    if (!name) throw new Error("No saved model yet.");
+    const d = await post("/api/load", {name});
+    showResult(d, true);
+    $("modelMsg").textContent = "Loaded " + name; $("modelMsg").className = "msg good";
+  } catch (e) { $("modelMsg").textContent = "⚠ " + e.message; $("modelMsg").className = "msg err"; }
+};
+
+$("classifyBtn").onclick = async () => {
+  try {
+    const values = currentFeatures.map((_, i) => $("s" + i).value);
+    const d = await post("/api/classify", {values});
+    $("classifyOut").innerHTML = `Predicted class → <span class="good">${d.class}</span>`;
+  } catch (e) { $("classifyOut").innerHTML = `<span class="err">⚠ ${e.message}</span>`; }
+};
+</script>
+</body>
+</html>
