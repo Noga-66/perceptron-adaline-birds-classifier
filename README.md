@@ -6,6 +6,12 @@ This project implements two single-neuron classifiers **from scratch (NumPy only
 
 Live demo: https://nana66.pythonanywhere.com
 
+<img width="1222" height="838" alt="Screenshot 2026-11-15 161957" src="https://github.com/user-attachments/assets/065d5de4-a8af-428a-9ef1-09de3327cfc9" />
+
+<img width="1220" height="842" alt="Screenshot 2026-11-15 161943" src="https://github.com/user-attachments/assets/62d9b56b-9b59-49ea-9918-ccc3493d854e" />
+
+
+
 ## Workflow
 
 1. **`Lab4_Task1_Training.ipynb`** runs all feature/class combinations for both algorithms, plots the decision lines, computes confusion matrices and accuracy, and **saves the trained models** to `models/` (JSON files).
